@@ -59,7 +59,7 @@ class MainScreenView: UIView {
 //            tableViewContacts.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor, constant: -8),
 //            tableViewContacts.leadingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.leadingAnchor, constant: 16),
 //            tableViewContacts.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-//            
+//
 //            floatingButtonAddContact.widthAnchor.constraint(equalToConstant: 48),
 //            floatingButtonAddContact.heightAnchor.constraint(equalToConstant: 48),
 //            floatingButtonAddContact.bottomAnchor.constraint(equalTo: self.safeAreaLayoutGuide.bottomAnchor, constant: -16),

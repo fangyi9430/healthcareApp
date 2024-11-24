@@ -52,25 +52,6 @@ class ViewController: UIViewController {
                 //MARK: Logout bar button...
                 self.setupRightBarButton(isLoggedin: true)
                 
-                //MARK: Observe Firestore database to display the contacts list...
-                //                self.database.collection("users")
-                //                    .document((self.currentUser?.email)!)
-                //                    .collection("contacts")
-                //                    .addSnapshotListener(includeMetadataChanges: false, listener: {querySnapshot, error in
-                //                        if let documents = querySnapshot?.documents{
-                //                            self.contactsList.removeAll()
-                //                            for document in documents{
-                //                                do{
-                //                                    let contact  = try document.data(as: Contact.self)
-                //                                    self.contactsList.append(contact)
-                //                                }catch{
-                //                                    print(error)
-                //                                }
-                //                            }
-                //                            self.contactsList.sort(by: {$0.name < $1.name})
-                //
-                //                        }
-                //                    })
                 
             }
         }
@@ -81,31 +62,28 @@ class ViewController: UIViewController {
         
         let titleLabel = UILabel()
         titleLabel.text = "My Profile"
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 20) // Customize font and size
-        titleLabel.textColor = .black // Customize color
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 20)
+        titleLabel.textColor = .black
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        // Create a container view for precise centering
+        // Create a container view
         let titleContainer = UIView()
         titleContainer.addSubview(titleLabel)
         titleContainer.translatesAutoresizingMaskIntoConstraints = false
         
-        // Add constraints to center the label
+        // Add constraints to the label
         NSLayoutConstraint.activate([
             titleLabel.centerXAnchor.constraint(equalTo: titleContainer.centerXAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: titleContainer.centerYAnchor)
         ])
         
+        // Assign the container to navigationItem.titleView
+        navigationItem.titleView = titleContainer
         
-        
-        //MARK: Make the titles look large...
-        navigationController?.navigationBar.prefersLargeTitles = true
-        
-        //MARK: Put the floating button above all the views...
-        //        view.bringSubviewToFront(mainScreen.floatingButtonAddContact)
-        
+        navigationController?.navigationBar.prefersLargeTitles = false
     }
+
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -117,3 +95,4 @@ class ViewController: UIViewController {
     }
     
 }
+

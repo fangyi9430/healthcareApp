@@ -40,7 +40,7 @@ class HistoryView: UIView {
             // Center the label horizontally in the view
             titleLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor),
             // Position the label near the top
-            titleLabel.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor, constant: 20)
+            titleLabel.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor, constant: 0)
         ])
     }
 

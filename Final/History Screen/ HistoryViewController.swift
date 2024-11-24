@@ -18,10 +18,35 @@ class HistoryViewController: UIViewController {
     }
     
     override func viewDidLoad() {
+        
+        
+        //label title
+        let titleLabel = UILabel()
+        titleLabel.text = "History"
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 20)
+        titleLabel.textColor = .black
+        titleLabel.textAlignment = .center
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Create a container view
+        let titleContainer = UIView()
+        titleContainer.addSubview(titleLabel)
+        titleContainer.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Add constraints to the label
+        NSLayoutConstraint.activate([
+            titleLabel.centerXAnchor.constraint(equalTo: titleContainer.centerXAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: titleContainer.centerYAnchor)
+        ])
+        
+        // Assign the container to navigationItem.titleView
+        navigationItem.titleView = titleContainer
+        
+        //--------//
+        
         super.viewDidLoad()
         
         // Set navigation bar preferences
-        navigationController?.navigationBar.prefersLargeTitles = true
-//        title = "History" // Set the navigation title
+       
     }
 }

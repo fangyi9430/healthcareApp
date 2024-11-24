@@ -41,7 +41,7 @@ class HomeScreenView: UIView {
             // Center the label horizontally in the view
             welcomeLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor),
             // Position the label closer to the top of the screen
-            welcomeLabel.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor, constant: 5) // Reduced padding
+            welcomeLabel.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor, constant: 0) // Reduced padding
         ])
     }
     

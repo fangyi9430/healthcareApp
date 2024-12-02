@@ -11,18 +11,18 @@ import FirebaseFirestore
 
 class ViewController: UIViewController {
     
-    let mainScreen = MainScreenView()
-    
-    var contactsList = [Contact]()
+    private let profileScreen = MainScreenView()
     
     var handleAuth: AuthStateDidChangeListenerHandle?
     
     var currentUser:FirebaseAuth.User?
     
-    let database = Firestore.firestore()
+    private var cachedUser: User?
+    
+    private let database = Firestore.firestore()
     
     override func loadView() {
-        view = mainScreen
+        view = profileScreen
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -30,81 +30,32 @@ class ViewController: UIViewController {
         
         //MARK: handling if the Authentication state is changed (sign in, sign out, register)...
         handleAuth = Auth.auth().addStateDidChangeListener{ auth, user in
-            if user == nil{
-                //MARK: not signed in...
-                self.currentUser = nil
-                self.mainScreen.labelText.text = "Please sign in to see the notes!"
-                //                self.mainScreen.floatingButtonAddContact.isEnabled = false
-                //                self.mainScreen.floatingButtonAddContact.isHidden = true
-                
-                //MARK: Reset tableView...
-                //                self.contactsList.removeAll()
-                //                self.mainScreen.tableViewContacts.reloadData()
-                
-                //MARK: Sign in bar button...
-                self.setupRightBarButton(isLoggedin: false)
-                
-            }else{
-                //MARK: the user is signed in...
-                self.currentUser = user
-                self.mainScreen.labelText.text = "Welcome \(user?.displayName ?? "Anonymous")!"
-                
-                //MARK: Logout bar button...
+        if user == nil{
+            //MARK: not signed in...
+            self.currentUser = nil
+            self.setupRightBarButton(isLoggedin: false)
+            self.profileScreen.setLoggedOutState() // set state as logged in
+            
+        }else{
+            //MARK: the user is signed in...
+            self.currentUser = user
+            if let uid = self.currentUser?.uid {
                 self.setupRightBarButton(isLoggedin: true)
-                
-                //MARK: Observe Firestore database to display the contacts list...
-                //                self.database.collection("users")
-                //                    .document((self.currentUser?.email)!)
-                //                    .collection("contacts")
-                //                    .addSnapshotListener(includeMetadataChanges: false, listener: {querySnapshot, error in
-                //                        if let documents = querySnapshot?.documents{
-                //                            self.contactsList.removeAll()
-                //                            for document in documents{
-                //                                do{
-                //                                    let contact  = try document.data(as: Contact.self)
-                //                                    self.contactsList.append(contact)
-                //                                }catch{
-                //                                    print(error)
-                //                                }
-                //                            }
-                //                            self.contactsList.sort(by: {$0.name < $1.name})
-                //
-                //                        }
-                //                    })
-                
+                self.profileScreen.setLoggedInState() // set state as logged in.
+                self.loadUserData(for: uid)
+            } else {
+                print("Error: User ID is nil")
             }
+            
         }
+    }
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let titleLabel = UILabel()
-        titleLabel.text = "My Profile"
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 20) // Customize font and size
-        titleLabel.textColor = .black // Customize color
-        titleLabel.textAlignment = .center
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Create a container view for precise centering
-        let titleContainer = UIView()
-        titleContainer.addSubview(titleLabel)
-        titleContainer.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Add constraints to center the label
-        NSLayoutConstraint.activate([
-            titleLabel.centerXAnchor.constraint(equalTo: titleContainer.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: titleContainer.centerYAnchor)
-        ])
-        
-        
-        
-        //MARK: Make the titles look large...
-        navigationController?.navigationBar.prefersLargeTitles = true
-        
-        //MARK: Put the floating button above all the views...
-        //        view.bringSubviewToFront(mainScreen.floatingButtonAddContact)
-        
+
+        profileScreen.editButton.addTarget(self, action: #selector(editButtonTapped), for: .touchUpInside)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -115,5 +66,85 @@ class ViewController: UIViewController {
     func signIn(email: String, password: String){
         Auth.auth().signIn(withEmail: email, password: password)
     }
+    
+    func loadUserData(for userId: String) {
+        database.collection("users").document(userId).getDocument { [weak self] snapshot, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Failed to load user data: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = snapshot?.data() else {
+                print("No data found for document with userId: \(userId)")
+                return
+            }
+            
+            print("Fetched Firestore data: \(data)")
+            
+            // Ensure all fields have default values to avoid decoding errors
+            let sanitizedData: [String: Any] = [
+                "name": data["name"] as? String ?? "",
+                "email": data["email"] as? String ?? "",
+                "phone": data["phone"] as? String ?? "",
+                "dateOfBirth": data["dateOfBirth"] as? String ?? "",
+                "height": data["height"] as? String ?? "",
+                "weight": data["weight"] as? String ?? "",
+                "sex": data["sex"] as? String ?? "",
+                "userID": data["userID"] as? String ?? ""
+            ]
+            
+            print("Sanitized Firestore data: \(sanitizedData)")
+            
+            do {
+                // Decode to User model
+                let user = try Firestore.Decoder().decode(User.self, from: sanitizedData)
+                print("Decoded User: \(user)")
+                
+                //cache user data model.
+                self.cachedUser = user
+                // Update profile screen
+                DispatchQueue.main.async {
+                    self.updateProfileView(with: user)
+                }
+            } catch let decodeError {
+                print("Failed to decode user data: \(decodeError.localizedDescription)")
+            }
+        }
+    }
+    
+    private func updateProfileView(with user: User) {
+        profileScreen.updateData(
+            name: user.name,
+            email: user.email,
+            phone: user.phone ?? "Not provided",
+            dob: user.dateOfBirth ?? "Not provided",
+            sex: user.height ?? "Not provided",
+            weight: user.weight ?? "Not provided",
+            height: user.sex ?? "Not provided"
+        )
+    }
+    
+    @objc private func editButtonTapped() {
+        guard let user = cachedUser else {
+            print("Error: User data not loaded or cached")
+            return
+        }
+        
+        print("Using cached user data for editing: \(user)")
+        
+        
+        NotificationCenter.default.post(
+            name: Notification.Name(NotificationNames.userDidSelectEditProfile),
+            object: nil,
+            userInfo: ["user": user]
+        )
+        
+        // 跳转到 EditProfileScreenViewController
+        // let editProfileVC = EditProfileScreenViewController()
+        // self.navigationController?.pushViewController(editProfileVC, animated: true)
+    }
+
     
 }

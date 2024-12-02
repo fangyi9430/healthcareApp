@@ -13,6 +13,8 @@ class ViewController: UIViewController {
     
     private let profileScreen = MainScreenView()
     
+    var pickedImage:UIImage?
+    
     var handleAuth: AuthStateDidChangeListenerHandle?
     
     var currentUser:FirebaseAuth.User?
@@ -54,8 +56,22 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-
         profileScreen.editButton.addTarget(self, action: #selector(editButtonTapped), for: .touchUpInside)
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refreshProfileScreen(_:)),
+            name: Notification.Name(NotificationNames.userDidUpdateProfile),
+            object: nil
+        )
+    }
+    
+    @objc private func refreshProfileScreen(_ notification: Notification) {
+        guard let userId = notification.userInfo?["userID"] as? String else {
+            print("Error: User ID not found in notification")
+            return
+        }
+        loadUserData(for: userId)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -134,16 +150,10 @@ class ViewController: UIViewController {
         
         print("Using cached user data for editing: \(user)")
         
-        
-        NotificationCenter.default.post(
-            name: Notification.Name(NotificationNames.userDidSelectEditProfile),
-            object: nil,
-            userInfo: ["user": user]
-        )
-        
         // 跳转到 EditProfileScreenViewController
-        // let editProfileVC = EditProfileScreenViewController()
-        // self.navigationController?.pushViewController(editProfileVC, animated: true)
+        let editProfileVC = EditProfileViewController()
+        editProfileVC.user = cachedUser
+        self.navigationController?.pushViewController(editProfileVC, animated: true)
     }
 
     

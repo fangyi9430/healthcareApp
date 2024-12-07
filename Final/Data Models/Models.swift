@@ -9,7 +9,7 @@ import Foundation
 import FirebaseFirestore
 
 struct Contact: Codable{
-    @DocumentID var id: String?
+    //@DocumentID var id: String?
     var name: String
     var email: String
     var phone: Int
@@ -20,3 +20,13 @@ struct Contact: Codable{
         self.phone = phone
     }
 }
+
+struct SymptomRecord {
+    var symptom: String
+    var duration: (hours: String, minutes: String)
+    var notes: String
+    var timestamp: Date
+}
+
+
+

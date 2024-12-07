@@ -28,5 +28,13 @@ class HomeViewController: UIViewController {
         homeView.welcomeLabel.text = "Hello \(displayName)! Welcome to FileLife."
         
         navigationController?.navigationBar.prefersLargeTitles = true
+        
+        homeView.buttonAdd.addTarget(self, action: #selector(buttonAddTapped), for: .touchUpInside)
+    }
+    
+    @objc func buttonAddTapped() {
+      
+        let addsymptomsscreen = AddNewSymptomsViewController()
+        navigationController?.pushViewController(addsymptomsscreen, animated: true)
     }
 }

@@ -12,6 +12,8 @@ class HomeScreenView: UIView {
     // Welcome Label
     var welcomeLabel = UILabel()
     
+    var buttonAdd: UIButton!
+    
     // Initializer
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -19,9 +21,23 @@ class HomeScreenView: UIView {
         
         // Set up the welcome label
         setupWelcomeLabel()
+        setupbuttonAdd()
         
         // Initialize constraints
         initConstraints()
+    }
+    
+    func setupbuttonAdd() {
+        buttonAdd = UIButton()
+        buttonAdd.backgroundColor = .systemBlue
+        buttonAdd.setTitle("+", for: .normal)
+        buttonAdd.setTitleColor(.white, for: .normal)
+        buttonAdd.titleLabel?.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        buttonAdd.layer.cornerRadius = 50
+        buttonAdd.layer.masksToBounds = true
+        buttonAdd.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(buttonAdd)
+        
     }
     
     // Function to set up the welcome label
@@ -41,7 +57,12 @@ class HomeScreenView: UIView {
             // Center the label horizontally in the view
             welcomeLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor),
             // Position the label closer to the top of the screen
-            welcomeLabel.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor, constant: 5) // Reduced padding
+            welcomeLabel.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor, constant: 5),// Reduced padding
+            
+            buttonAdd.topAnchor.constraint(equalTo: welcomeLabel.bottomAnchor, constant: 20),
+            buttonAdd.heightAnchor.constraint(equalToConstant: 200),
+            buttonAdd.widthAnchor.constraint(equalToConstant: 200),
+            buttonAdd.centerXAnchor.constraint(equalTo: self.safeAreaLayoutGuide.centerXAnchor)
         ])
     }
     

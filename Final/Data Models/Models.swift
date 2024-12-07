@@ -8,12 +8,11 @@
 import Foundation
 import FirebaseFirestore
 
+
 struct User: Codable{
-    //@DocumentID var id: String?
     var name: String
     var email: String
     var phone: String?
-    // adding new fields might cause error, get to check if other class use this model.
     var dateOfBirth: String?
     var height: String?
     var weight: String?
@@ -33,3 +32,13 @@ struct User: Codable{
         self.profilePictureURL = profilePictureURL
     }
 }
+
+struct SymptomRecord {
+    var symptom: String
+    var duration: (hours: String, minutes: String)
+    var notes: String
+    var timestamp: Date
+}
+
+
+

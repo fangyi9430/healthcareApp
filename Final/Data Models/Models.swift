@@ -8,16 +8,11 @@
 import Foundation
 import FirebaseFirestore
 
-<<<<<<< HEAD:Final/Data Models/Models.swift
-struct Contact: Codable{
-=======
 struct User: Codable{
->>>>>>> profile:Final/Data Models/Contact.swift
-    //@DocumentID var id: String?
+
     var name: String
     var email: String
     var phone: String?
-    // adding new fields might cause error, get to check if other class use this model.
     var dateOfBirth: String?
     var height: String?
     var weight: String?

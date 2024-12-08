@@ -9,7 +9,7 @@ import UIKit
 
 class MainScreenView: UIView {
     
-    private var profileImageView: UIImageView!
+    var profileImageView: UIImageView!
     private var nameLabel: UILabel!
     private var emailLabel: UILabel!
     private var phoneLabel: UILabel!

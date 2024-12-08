@@ -45,6 +45,9 @@ class ViewController: UIViewController {
                 self.setupRightBarButton(isLoggedin: true)
                 self.profileScreen.setLoggedInState() // set state as logged in.
                 self.loadUserData(for: uid)
+                if let url = self.currentUser?.photoURL{
+                    self.profileScreen.profileImageView.loadRemoteImage(from: url)
+                }
             } else {
                 print("Error: User ID is nil")
             }

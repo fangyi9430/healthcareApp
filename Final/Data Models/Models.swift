@@ -8,8 +8,8 @@
 import Foundation
 import FirebaseFirestore
 
-struct User: Codable{
 
+struct User: Codable{
     var name: String
     var email: String
     var phone: String?

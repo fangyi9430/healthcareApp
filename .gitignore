@@ -75,5 +75,7 @@ playground.xcworkspace
 *.orig
 *.sqlite
 *.xcuserstate
+*.xcuserstate
+
 
 

@@ -14,6 +14,8 @@ class HomeScreenView: UIView {
     
     var buttonAdd: UIButton!
     
+    var labelInstruct: UILabel!
+    
     // Initializer
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -21,10 +23,23 @@ class HomeScreenView: UIView {
         
         // Set up the welcome label
         setupWelcomeLabel()
+        setupLabelInstruct()
         setupbuttonAdd()
         
         // Initialize constraints
         initConstraints()
+    }
+    
+    func setupLabelInstruct() {
+        labelInstruct = UILabel()
+        labelInstruct.text = "Quckly Adding a record of your symptoms by pressing the button bellow."
+        labelInstruct.font = UIFont.systemFont(ofSize: 16, weight: .bold)
+        labelInstruct.textColor = .black
+        labelInstruct.textAlignment = .left
+        labelInstruct.numberOfLines = 0
+        labelInstruct.lineBreakMode = .byWordWrapping
+        labelInstruct.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(labelInstruct)
     }
     
     func setupbuttonAdd() {
@@ -59,7 +74,12 @@ class HomeScreenView: UIView {
             // Position the label closer to the top of the screen
             welcomeLabel.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor, constant: 5),// Reduced padding
             
-            buttonAdd.topAnchor.constraint(equalTo: welcomeLabel.bottomAnchor, constant: 20),
+            labelInstruct.topAnchor.constraint(equalTo: welcomeLabel.bottomAnchor, constant: 30),
+            labelInstruct.centerXAnchor.constraint(equalTo: self.safeAreaLayoutGuide.centerXAnchor),
+            labelInstruct.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 16),
+            labelInstruct.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -16),
+            
+            buttonAdd.topAnchor.constraint(equalTo: labelInstruct.bottomAnchor, constant: 20),
             buttonAdd.heightAnchor.constraint(equalToConstant: 200),
             buttonAdd.widthAnchor.constraint(equalToConstant: 200),
             buttonAdd.centerXAnchor.constraint(equalTo: self.safeAreaLayoutGuide.centerXAnchor)

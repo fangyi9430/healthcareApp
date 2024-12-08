@@ -39,7 +39,6 @@ class AddNewSymptomsViewController: UIViewController {
     }
     
     
-    
 
     /*
     // MARK: - Navigation
@@ -75,8 +74,22 @@ class AddNewSymptomsViewController: UIViewController {
         dateFormatter.dateFormat = "MMMM d, yyyy 'at' h:mm:ss a 'UTC'Z"
         let timestampString = dateFormatter.string(from: Date())
         
-        // Create the Symptom object
+        guard let userId = Auth.auth().currentUser?.uid else {
+            print("User not logged in")
+            return
+        }
+        
+        let db = Firestore.firestore()
+        let symptomsRef = db.collection("symptoms")
+            .document(userId)
+            .collection("userSymptoms")
+        
+        // First create a document reference to get an ID
+        let newDocumentRef = symptomsRef.document()
+        
+        // Create the Symptom object with the ID
         let symptom = Symptom(
+            id: newDocumentRef.documentID,  // Include the document ID
             category: selectedCategory,
             duration: Symptom.Duration(
                 hours: String(selectedHour),
@@ -86,15 +99,9 @@ class AddNewSymptomsViewController: UIViewController {
             timestamp: timestampString
         )
         
-        guard let userId = Auth.auth().currentUser?.uid else {
-            print("User not logged in")
-            return
-        }
-        
-        let db = Firestore.firestore()
-        
         // Convert the Symptom object to a dictionary
         let recordData: [String: Any] = [
+            "id": symptom.id ?? "",
             "category": symptom.category,
             "duration": [
                 "hours": symptom.duration.hours,
@@ -104,33 +111,33 @@ class AddNewSymptomsViewController: UIViewController {
             "timestamp": symptom.timestamp
         ]
         
-        db.collection("symptoms")
-            .document(userId)
-            .collection("userSymptoms")
-            .addDocument(data: recordData) { [weak self] error in
-                guard let self = self else { return }
-                
-                if let error = error {
-                    print("Error saving record: \(error)")
-                    DispatchQueue.main.async {
-                        self.showAlert(title: "Error", message: "Failed to save symptom record. Please try again.")
-                    }
-                } else {
-                    print("Record saved successfully")
-                    DispatchQueue.main.async {
-                        let alert = UIAlertController(
-                            title: "Success",
-                            message: "Your symptom record has been saved.",
-                            preferredStyle: .alert
-                        )
-                        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                            // Dismiss the view controller after user taps OK
-                            self.navigationController?.popViewController(animated: true)
-                        })
-                        self.present(alert, animated: true)
-                    }
+        // Save the document with its ID included
+        newDocumentRef.setData(recordData) { [weak self] error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Error saving record: \(error)")
+                DispatchQueue.main.async {
+                    self.showAlert(title: "Error", message: "Failed to save symptom record. Please try again.")
+                }
+            } else {
+                print("Record saved successfully with ID: \(newDocumentRef.documentID)")
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(
+                        title: "Success",
+                        message: "Your symptom record has been saved.",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                        guard let self = self else { return }
+                        self.navigationController?.popToRootViewController(animated: true)
+                    })
+                    
+                    //在这里加跳转
+                    self.present(alert, animated: true)
                 }
             }
+        }
     }
 
     // Update the showAlert function to handle different titles
@@ -155,12 +162,7 @@ class AddNewSymptomsViewController: UIViewController {
         return true
     }
 
-    
 
-    
-    
-    
-    
 }
 
 extension AddNewSymptomsViewController: UIPickerViewDataSource, UIPickerViewDelegate {

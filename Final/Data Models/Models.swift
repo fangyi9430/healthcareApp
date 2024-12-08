@@ -21,11 +21,17 @@ struct Contact: Codable{
     }
 }
 
-struct SymptomRecord {
-    var symptom: String
-    var duration: (hours: String, minutes: String)
+struct Symptom {
+    var id: String?
+    var category: String
+    var duration: Duration
     var notes: String
-    var timestamp: Date
+    var timestamp: String  
+    
+    struct Duration: Codable {
+        var hours: String
+        var minutes: String
+    }
 }
 
 

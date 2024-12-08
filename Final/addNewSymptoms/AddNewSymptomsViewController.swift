@@ -14,7 +14,7 @@ class AddNewSymptomsViewController: UIViewController {
     
     let addSymptomsView = AddNewSymptomsView()
     
-    var selectedCategory = "head issue"
+    var selectedCategory = ""
     
     var selectedHour = "0"
     var selectedMinute = "0"
@@ -69,42 +69,75 @@ class AddNewSymptomsViewController: UIViewController {
         guard checkValidInputs() else { return }
         
         let notes = addSymptomsView.notes.text ?? ""
-            let timestamp = Date()
-            let symptomRecord = SymptomRecord(
-                symptom: selectedCategory,
-                duration: (hours: selectedHour, minutes: selectedMinute),
-                notes: notes,
-                timestamp: timestamp
+        
+        // Create a formatted timestamp string
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM d, yyyy 'at' h:mm:ss a 'UTC'Z"
+        let timestampString = dateFormatter.string(from: Date())
+        
+        // Create the Symptom object
+        let symptom = Symptom(
+            category: selectedCategory,
+            duration: Symptom.Duration(
+                hours: String(selectedHour),
+                minutes: String(selectedMinute)
+            ),
+            notes: notes,
+            timestamp: timestampString
         )
         
         guard let userId = Auth.auth().currentUser?.uid else {
-                print("User not logged in")
-                return
+            print("User not logged in")
+            return
         }
         
         let db = Firestore.firestore()
         
+        // Convert the Symptom object to a dictionary
         let recordData: [String: Any] = [
-            "category": symptomRecord.symptom,
+            "category": symptom.category,
             "duration": [
-                "hours": symptomRecord.duration.hours,
-                "minutes": symptomRecord.duration.minutes
+                "hours": symptom.duration.hours,
+                "minutes": symptom.duration.minutes
             ],
-            "notes": symptomRecord.notes,
-            "timestamp": symptomRecord.timestamp
+            "notes": symptom.notes,
+            "timestamp": symptom.timestamp
         ]
         
-        db.collection("users")
+        db.collection("symptoms")
             .document(userId)
-            .collection("symptomRecord")
-            .addDocument(data: recordData) { error in
+            .collection("userSymptoms")
+            .addDocument(data: recordData) { [weak self] error in
+                guard let self = self else { return }
+                
                 if let error = error {
                     print("Error saving record: \(error)")
+                    DispatchQueue.main.async {
+                        self.showAlert(title: "Error", message: "Failed to save symptom record. Please try again.")
+                    }
                 } else {
                     print("Record saved successfully")
+                    DispatchQueue.main.async {
+                        let alert = UIAlertController(
+                            title: "Success",
+                            message: "Your symptom record has been saved.",
+                            preferredStyle: .alert
+                        )
+                        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+                            // Dismiss the view controller after user taps OK
+                            self.navigationController?.popViewController(animated: true)
+                        })
+                        self.present(alert, animated: true)
+                    }
                 }
             }
-    
+    }
+
+    // Update the showAlert function to handle different titles
+    func showAlert(title: String = "Invalid Input", message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        self.present(alert, animated: true)
     }
     
     func checkValidInputs() -> Bool {
@@ -123,11 +156,7 @@ class AddNewSymptomsViewController: UIViewController {
     }
 
     
-    func showAlert(message: String) {
-        let alert = UIAlertController(title: "Invalid Input", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-        self.present(alert, animated: true, completion: nil)
-    }
+
     
     
     

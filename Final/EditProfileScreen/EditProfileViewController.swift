@@ -14,11 +14,13 @@ class EditProfileViewController: UIViewController {
     
     let editProfileView = EditProfileView()
     
+    let childProgressView = ProgressSpinnerViewController()
+    
     let storage = Storage.storage()
     
-    var user: User?
-    
     var pickedImage:UIImage?
+    
+    var user: User?
     
     var currentUserID: String?
     
@@ -39,17 +41,56 @@ class EditProfileViewController: UIViewController {
             return
         }
         
+        
         editProfileView.nameLabel.text = "Name: \(user.name)"
         editProfileView.emailLabel.text = "Email: \(user.email)"
         
         editProfileView.buttonTakePhoto.menu = getMenuImagePicker()
-        print(editProfileView.buttonTakePhoto.showsMenuAsPrimaryAction) // 确保输出为 true
-        print(editProfileView.buttonTakePhoto.menu ?? "fail")
-        //editProfileView.buttonTakePhoto.addTarget(self, action: #selector(debugButtonTapped), for: .touchUpInside)
+        //print(editProfileView.buttonTakePhoto.showsMenuAsPrimaryAction) // 确保输出为 true
+        //print(editProfileView.buttonTakePhoto.menu ?? "fail")
+        editProfileView.saveButton.addTarget(self, action: #selector(onSaveButtonTapped), for: .touchUpInside)
 
     }
-    @objc func debugButtonTapped() {
+    
+    @objc func onSaveButtonTapped() {
+        
+        showActivityIndicator()
         print("Button tapped")
+        
+        guard let user = user, let currentUserID = user.userID else {
+            hideActivityIndicator()
+            print("Error: User or currentUserID is nil.")
+            showAlert(message: "User data is missing. Please try again.")
+            return
+       }
+        
+        guard checkValidInputs() else {
+            hideActivityIndicator()
+            print("Invalid inputs detected. Save operation aborted.")
+            return
+        }
+        
+        
+        
+        self.currentUserID = currentUserID
+        
+        uploadProfilePhotoToStorage()
+        hideActivityIndicator()
+        self.navigationController?.popViewController(animated: true)
+        
+        
+    }
+    
+    func  showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func showAlert(message: String) {
+        let alert = UIAlertController(title: "Invalid Input", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        self.present(alert, animated: true, completion: nil)
     }
     
 
@@ -68,18 +109,37 @@ class EditProfileViewController: UIViewController {
         editProfileView.emailLabel.text = "Email: \(user.email)"
     }
     
-    @objc private func onSaveButtonTapped() {
+    func checkValidInputs() -> Bool {
         
-    
+        if editProfileView.phoneTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true {
+            showAlert(message: "Phone number cannot be empty.")
+            return false
+        }
+        
+        if editProfileView.dobTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true {
+            showAlert(message: "Date of birth cannot be empty.")
+            return false
+        }
+        
+        if editProfileView.heightTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true {
+            showAlert(message: "Height cannot be empty.")
+            return false
+        }
+        
+        if editProfileView.weightTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true {
+            showAlert(message: "Weight cannot be empty.")
+            return false
+        }
+        
+        if editProfileView.sexTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true {
+            showAlert(message: "Sex cannot be empty.")
+            return false
+        }
+        
+        
+        return true
     }
-    
-    func showAlert(title: String, message: String, completion: (() -> Void)? = nil) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-            completion?()
-        })
-        present(alert, animated: true)
-    }
+
     
     func getMenuImagePicker() -> UIMenu{
         print(" call to getMenuImagePicker() successed.")

@@ -14,7 +14,7 @@ class AddNewSymptomsViewController: UIViewController {
     
     let addSymptomsView = AddNewSymptomsView()
     
-    var selectedCategory = "head issue"
+    var selectedCategory = ""
     
     var selectedHour = "0"
     var selectedMinute = "0"
@@ -37,7 +37,6 @@ class AddNewSymptomsViewController: UIViewController {
         addSymptomsView.saveButton.addTarget(self, action: #selector(onSaveButtonTapped), for: .touchUpInside)
 
     }
-    
     
     
 
@@ -69,42 +68,83 @@ class AddNewSymptomsViewController: UIViewController {
         guard checkValidInputs() else { return }
         
         let notes = addSymptomsView.notes.text ?? ""
-            let timestamp = Date()
-            let symptomRecord = SymptomRecord(
-                symptom: selectedCategory,
-                duration: (hours: selectedHour, minutes: selectedMinute),
-                notes: notes,
-                timestamp: timestamp
-        )
+        
+        // Create a formatted timestamp string
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM d, yyyy 'at' h:mm:ss a 'UTC'Z"
+        let timestampString = dateFormatter.string(from: Date())
         
         guard let userId = Auth.auth().currentUser?.uid else {
-                print("User not logged in")
-                return
+            print("User not logged in")
+            return
         }
         
         let db = Firestore.firestore()
+        let symptomsRef = db.collection("symptoms")
+            .document(userId)
+            .collection("userSymptoms")
         
+        // First create a document reference to get an ID
+        let newDocumentRef = symptomsRef.document()
+        
+        // Create the Symptom object with the ID
+        let symptom = Symptom(
+            id: newDocumentRef.documentID,  // Include the document ID
+            category: selectedCategory,
+            duration: Symptom.Duration(
+                hours: String(selectedHour),
+                minutes: String(selectedMinute)
+            ),
+            notes: notes,
+            timestamp: timestampString
+        )
+        
+        // Convert the Symptom object to a dictionary
         let recordData: [String: Any] = [
-            "category": symptomRecord.symptom,
+            "id": symptom.id ?? "",
+            "category": symptom.category,
             "duration": [
-                "hours": symptomRecord.duration.hours,
-                "minutes": symptomRecord.duration.minutes
+                "hours": symptom.duration.hours,
+                "minutes": symptom.duration.minutes
             ],
-            "notes": symptomRecord.notes,
-            "timestamp": symptomRecord.timestamp
+            "notes": symptom.notes,
+            "timestamp": symptom.timestamp
         ]
         
-        db.collection("users")
-            .document(userId)
-            .collection("symptomRecord")
-            .addDocument(data: recordData) { error in
-                if let error = error {
-                    print("Error saving record: \(error)")
-                } else {
-                    print("Record saved successfully")
+        // Save the document with its ID included
+        newDocumentRef.setData(recordData) { [weak self] error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Error saving record: \(error)")
+                DispatchQueue.main.async {
+                    self.showAlert(title: "Error", message: "Failed to save symptom record. Please try again.")
+                }
+            } else {
+                print("Record saved successfully with ID: \(newDocumentRef.documentID)")
+                DispatchQueue.main.async {
+                    let alert = UIAlertController(
+                        title: "Success",
+                        message: "Your symptom record has been saved.",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                        guard let self = self else { return }
+                        self.navigationController?.popToRootViewController(animated: true)
+                    })
+                    
+                    //在这里加跳转
+                    self.present(alert, animated: true)
                 }
             }
-    
+        }
+    }
+
+    // Update the showAlert function to handle different titles
+    func showAlert(title: String = "Invalid Input", message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        self.present(alert, animated: true)
     }
     
     func checkValidInputs() -> Bool {
@@ -122,16 +162,7 @@ class AddNewSymptomsViewController: UIViewController {
         return true
     }
 
-    
-    func showAlert(message: String) {
-        let alert = UIAlertController(title: "Invalid Input", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-        self.present(alert, animated: true, completion: nil)
-    }
-    
-    
-    
-    
+
 }
 
 extension AddNewSymptomsViewController: UIPickerViewDataSource, UIPickerViewDelegate {
